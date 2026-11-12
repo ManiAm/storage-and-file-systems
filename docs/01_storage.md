@@ -8,14 +8,14 @@ Storage systems differ in **how they organize data**, **where they run**, and **
 | **Storage Area Network (SAN)**       | Fixed-size blocks                | Centralized storage fabric        | Fibre Channel (FC), iSCSI, FCoE, NVMe-oF          | Dell EMC PowerStore, NetApp, AWS EBS        |
 | **Network-Attached Storage (NAS)**   | Files and directories            | Remote file server                | NFS, SMB/CIFS, AFS                                | Synology NAS, QNAP, Amazon EFS              |
 | **Object Storage**                   | Objects (data + metadata + ID)   | Application or API layer          | REST API (HTTP/S3, Swift, etc.)                   | Amazon S3, Google Cloud Storage, MinIO      |
-| **Distributed / Cluster Filesystem** | Files (distributed across nodes) | Clustered metadata + data servers | Custom client or FUSE; sometimes NFS/SMB gateways | GlusterFS, CephFS, Lustre, HDFS             |
+| **Distributed Filesystem**           | Files (distributed across nodes) | Cluster of cooperating nodes      | Custom client or FUSE; sometimes NFS/SMB gateways | GlusterFS, CephFS, Lustre, HDFS             |
 
 
 ## Direct-Attached Storage (DAS)
 
 Direct-Attached Storage refers to any storage device that connects directly to a single host computer, without any intervening network. Think of the hard drive or SSD inside your laptop — that is DAS.
 
-<img src="../pics/storage-das.png" alt="segment" width="500">
+<img src="../pics/storage-das.png" alt="Direct-Attached Storage diagram" width="500">
 
 Common interfaces include:
 
@@ -24,7 +24,7 @@ Common interfaces include:
 - **SAS** (Serial Attached SCSI, 2004) — an enterprise-grade interface with higher reliability and speed than SATA.
 - **NVMe** (Non-Volatile Memory Express, 2011) — a high-speed interface that uses the PCIe bus, either through a direct slot (M.2, add-in card) or a cable (U.2, OCuLink).
 
-All of these interfaces use **block addressing**, where data is read and written in fixed-size units called *blocks* (typically 512 bytes or 4 KB). The operating system's filesystem (such as ext4, NTFS, or APFS) manages how these blocks map to the files and directories you see.
+All of these interfaces use **block addressing**, where data is read and written in fixed-size units called *blocks* (typically 512 bytes or 4 KB). The operating system's filesystem (such as ext4, NTFS, or APFS) manages how these blocks map to the files and directories you see. See [File Systems — Traditional (Local)](08_file_systems.md#traditional-local-filesystems) for a comparison of these filesystems.
 
 DAS offers low latency and high throughput because there is no network between the host and the storage. However, it has limited scalability — only the directly connected system can access the data.
 
@@ -35,7 +35,7 @@ DAS offers low latency and high throughput because there is no network between t
 
 A Storage Area Network is a dedicated, high-speed network designed to give multiple servers access to shared storage. It separates storage from individual hosts, allowing centralized management and flexible provisioning.
 
-<img src="../pics/storage-san.png" alt="segment" width="500">
+<img src="../pics/storage-san.png" alt="Storage Area Network diagram" width="500">
 
 Common SAN technologies include:
 
@@ -46,9 +46,9 @@ Common SAN technologies include:
 
 Like DAS, a SAN operates at the **block level**. Remote storage volumes appear to each server as if they were local disks, so any standard filesystem can be layered on top.
 
-SANs are widely used in enterprise data centers for workloads that demand high throughput, low latency, and redundancy — such as databases, virtual machines, and clustered applications.
+SANs are more complex and expensive to deploy than NAS, but provide superior performance and fault tolerance for block-oriented workloads.
 
-They are more complex and expensive to deploy than NAS, but provide superior performance and fault tolerance for block-oriented workloads.
+**Typical use cases:** databases, virtual machines, clustered applications, and any workload that demands high throughput, low latency, and redundancy.
 
 > **Note — The role of RDMA in SANs:**
 > Some SAN protocols (notably NVMe-oF and iSCSI via iSER) can run over **RDMA** (Remote Direct Memory Access) transports such as **InfiniBand** or **RoCE** (RDMA over Converged Ethernet). RDMA allows one server to read from or write to another server's memory directly, bypassing the CPU and OS networking stack entirely. This eliminates copy and context-switch overhead, resulting in low latency and high throughput — critical for latency-sensitive workloads like databases, real-time analytics, and AI/ML training. InfiniBand is common in HPC and data center environments, while RoCE brings RDMA capabilities to standard Ethernet infrastructure at a lower cost.
@@ -58,17 +58,9 @@ They are more complex and expensive to deploy than NAS, but provide superior per
 
 Network-Attached Storage operates at the **file level**, unlike DAS and SAN, which operate at the block level. Instead of exposing raw disk blocks, a NAS device has its own operating system and filesystem. Clients interact with it through familiar file operations — open, read, write, and delete — over the network.
 
-<img src="../pics/storage-nas.png" alt="segment" width="500">
+<img src="../pics/storage-nas.png" alt="Network-Attached Storage diagram" width="500">
 
-NAS uses a client–server architecture: the NAS server hosts the filesystem and grants access through standard network protocols.
-
-| **Protocol**                        | **Year** | **Description**                                                                                  |
-| ----------------------------------- | -------- | ------------------------------------------------------------------------------------------------ |
-| SMB (Server Message Block)          | 1983     | Designed by Barry Feigenbaum at IBM for file and printer sharing over PC networks.               |
-| NFS (Network File System)           | 1984     | Developed by Sun Microsystems; the dominant file-sharing protocol on UNIX/Linux systems.         |
-| AFS (Andrew File System)            | 1984     | Developed at Carnegie Mellon University; a distributed filesystem with client-side caching and replication. |
-| CIFS (Common Internet File System)  | 1996     | An updated version of SMB by Microsoft, optimized for Windows environments.                      |
-| Amazon EFS (Elastic File System)    | 2016     | A fully managed cloud NAS by AWS, providing scalable shared file storage over the NFS protocol.  |
+NAS uses a client–server architecture: the NAS server hosts the filesystem and grants access through standard network protocols such as **NFS**, **SMB/CIFS**, and **AFS**. For a detailed comparison of all network filesystem protocols, see [File Systems — Network](08_file_systems.md#network-filesystems).
 
 Because the NAS device manages file permissions, directory structures, and data sharing on behalf of clients, it is simpler and cheaper to deploy than a SAN. The trade-off is higher latency and lower throughput for block-oriented workloads, since every request passes through the file-level protocol layer.
 
@@ -83,7 +75,7 @@ Object storage is a data storage architecture designed to manage vast amounts of
 2. **Metadata** — descriptive attributes (e.g., creation date, content type, custom tags).
 3. **Object ID** — a globally unique identifier used to retrieve the object.
 
-<img src="../pics/storage-obj.png" alt="segment" width="600">
+<img src="../pics/storage-obj.png" alt="Object Storage diagram" width="600">
 
 The following table lists some widely used object storage platforms and services:
 
@@ -105,6 +97,8 @@ To ensure durability and fault tolerance, object storage systems use mechanisms 
 
 Because metadata is extensive and customizable, object storage also supports powerful search, classification, and lifecycle management capabilities — making it the backbone of modern cloud storage.
 
+**Typical use cases:** media storage, backups and archives, data lakes, static website hosting, and large-scale log aggregation.
+
 
 ## Distributed Filesystems
 
@@ -112,26 +106,17 @@ A Distributed Filesystem stores data across multiple servers or nodes, typically
 
 From a user's perspective, a distributed filesystem looks and behaves like a regular local filesystem — applications use standard file operations (open, read, write, close) without needing to know that the data is physically spread across a cluster.
 
-<img src="../pics/distributed-fs.png" alt="distributed filesystem architecture" width="600">
+<img src="../pics/distributed-fs.png" alt="distributed filesystem architecture" width="700">
 
-**How they work:**
+Distributed filesystems must solve two problems: tracking **where** each file lives across the cluster, and storing the **actual data** across many disks. Common approaches include:
 
-At their core, distributed filesystems separate two concerns:
+- **Centralized metadata** — dedicated metadata servers (MDS) handle namespace operations (create, rename, delete) while separate data servers (OSD) store file contents. Used by Lustre, CephFS, and HDFS (NameNode + DataNodes).
 
-- **Metadata servers (MDS)** — coordinate namespace operations such as creating, renaming, and deleting files. They track where each file's data is stored across the cluster.
+- **Distributed metadata** — no dedicated metadata server. Instead, a distributed hash table determines where each file is stored, and all nodes are equal peers. Used by GlusterFS.
 
-- **Data servers (OSD / storage nodes)** — store the actual file contents, distributed across many disks and machines.
+- **Shared-disk** — all nodes access the same shared block storage (via SAN) and coordinate through a distributed lock manager (DLM). Used by Red Hat GFS2.
 
-This separation enables massive parallelism: many clients can read or write different parts of the same or different files simultaneously.
-
-| **Filesystem**                        | **Year** | **Description**                                                            |
-| ------------------------------------- | -------- | -------------------------------------------------------------------------- |
-| DCE/DFS (Distributed File System)     | 1991     | Developed by Transarc as part of OSF's Distributed Computing Environment. |
-| GFS (Global File System)              | 1996     | A shared-disk filesystem developed at the University of Minnesota; later acquired by Red Hat. |
-| Lustre                                | 2003     | A high-performance parallel filesystem for large-scale cluster computing.  |
-| GlusterFS                             | 2006     | A scalable distributed filesystem for cloud and containerized environments.|
-| CephFS                                | 2006     | A distributed filesystem built on top of the Ceph storage platform.        |
-| HDFS (Hadoop Distributed File System) | 2006     | Built for big data processing within the Hadoop ecosystem.                 |
+Regardless of approach, the goal is the same: **parallelism** — many clients can read or write different parts of the same or different files simultaneously. For a comparison of distributed filesystems, see [File Systems — Distributed](08_file_systems.md#distributed-filesystems).
 
 These filesystems are built to handle **petabyte-scale data** and tolerate node failures without service interruption, using mechanisms like replication, erasure coding, and automatic data rebalancing.
 

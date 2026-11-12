@@ -256,4 +256,3 @@ Linux reuses the existing Windows ESP — both OSes keep their bootloader files 
 These partitions are connected into a single directory tree through [mounting](15_mounting.md).
 
 [← Previous: LVM](06_lvm.md) | [Next: File Systems →](08_file_systems.md)
-
