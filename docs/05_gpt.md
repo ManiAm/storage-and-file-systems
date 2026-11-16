@@ -8,7 +8,7 @@ GPT addresses the key limitations of MBR:
 - **Partition count:** GPT supports up to **128 partitions** by default (no need for extended/logical partitions).
 - **Data integrity:** GPT stores CRC32 checksums for the header and partition table, allowing detection of corruption.
 - **Redundancy:** GPT keeps a **backup copy** of the header and partition table at the end of the disk, so data can be recovered if the primary copy is damaged.
-- **Backward compatibility:** GPT includes a **Protective MBR** in sector 0, which prevents older MBR-only tools from misinterpreting the disk as empty or unformatted.
+- **Backward compatibility:** GPT includes a [Protective MBR](#protective-mbr) in sector 0, which prevents older MBR-only tools from misinterpreting the disk as empty or unformatted.
 
 <img src="../pics/mbr-vs-gpt.png" alt="MBR vs GPT comparison" width="700">
 
@@ -102,5 +102,22 @@ sda    400G  disk
 ├─sda2   2G  part
 └─sda3 398G  part
 ```
+
+## Backward Compatibility with MBR
+
+GPT was designed to replace MBR, but the transition could not happen overnight — billions of systems, tools, and operating systems relied on MBR. To bridge the gap, GPT includes a Protective MBR.
+
+Every GPT disk includes a **Protective MBR** at LBA 0 (the same location where a traditional MBR would reside). It contains a single partition entry with type **0xEE** (GPT Protective) that spans the entire disk. The other three MBR partition slots are set to zero.
+
+| Field          | Value          | Purpose                                                |
+|----------------|----------------|--------------------------------------------------------|
+| Boot Indicator | `0x00`         | Non-bootable                                           |
+| OS Type        | `0xEE`         | Signals "this is a GPT disk"                           |
+| Starting LBA   | `0x00000001`   | Points to the GPT Header at LBA 1                      |
+| Size in LBA    | Disk size − 1  | Covers the entire disk (or `0xFFFFFFFF` if too large)  |
+
+**Why it exists:** Legacy MBR-only tools (such as older versions of `fdisk`, MS-DOS `FDISK`, or Windows NT Disk Administrator) do not understand GPT. Without the Protective MBR, these tools would see the disk as empty and could accidentally overwrite the GPT structures. With it, they see one large partition of an unknown type — and leave the disk alone.
+
+> **Note:** UEFI firmware ignores the boot code in the Protective MBR. It locates the bootloader by reading the GPT and finding the **EFI System Partition (ESP)** instead. The Protective MBR exists solely for the benefit of older MBR-based software.
 
 [← Previous: MBR](04_mbr.md) | [Next: LVM →](06_lvm.md)
