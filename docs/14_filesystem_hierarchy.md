@@ -1,6 +1,6 @@
 # Filesystem Hierarchy Standard (FHS)
 
-Unlike Windows, which assigns each storage device a separate drive letter (`C:`, `D:`, `E:`), Linux organizes all files and directories into a **single unified tree** rooted at `/`. Every disk, partition, and device is [mounted](15_mounting.md) into this tree, appearing as an ordinary directory. The **Filesystem Hierarchy Standard** (FHS) defines where things should go within this tree — ensuring consistency and predictability across Linux distributions for users, developers, and system administrators.
+Unlike Windows, which assigns each storage device a separate drive letter (`C:`, `D:`, `E:`), Linux organizes all files and directories into a **single unified tree** rooted at `/`. Every disk, partition, and device is [mounted](15_mounting.md) into this tree, appearing as an ordinary directory. The **Filesystem Hierarchy Standard** ([FHS](https://specifications.freedesktop.org/fhs/latest)) defines where things should go within this tree — ensuring consistency and predictability across Linux distributions for users, developers, and system administrators.
 
 ## FHS Versions
 
@@ -8,13 +8,12 @@ Unlike Windows, which assigns each storage device a separate drive letter (`C:`,
 |---------|------|-------------|
 | 1.0     | 1994 | Initial release. Defined the basic directory structure and layout. |
 | 2.0     | 1997 | Major update. Introduced clearer definitions for `/usr`, `/var`, and `/opt`. |
-| 2.1     | 1999 | Minor adjustments. Clarified `/boot` usage and introduced `/mnt` for temporary mounts. |
+| 2.1     | 2000 | Minor adjustments. Clarified `/boot` usage and introduced `/mnt` for temporary mounts. |
 | 2.2     | 2001 | Further refinements. Enhanced descriptions for `/dev` and `/proc`. |
 | 2.3     | 2004 | Introduced `/srv` for site-specific data and `/media` for removable media. Clarified `/tmp` and `/var/tmp`. |
-| 3.0     | 2015 | Simplified directory requirements. Removed `/lib64` requirement, allowing `/lib` for both 32-bit and 64-bit. |
-| 3.1     | 2020 | Latest release. Updated `/run` and deprecated `/var/run`. |
+| 3.0     | 2015 | Latest release. Simplified directory requirements. Added `/usr/libexec`. |
 
-After version 3.1, the FHS has been minimally updated, as most distributions have adopted the standard and evolved independently.
+FHS 3.0 remains the current version. Most distributions have adopted the standard and evolved independently. Originally published by the Linux Foundation, the FHS is now maintained by [FreeDesktop.org](https://specifications.freedesktop.org/fhs/latest) (since 2025).
 
 ## Physical vs Virtual Directories
 
